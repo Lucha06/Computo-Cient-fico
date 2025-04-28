@@ -1,0 +1,261 @@
+library(pacman)
+p_load(haven, dplyr, factoextra, FactoMineR, readr, rgl, fpc)
+#----------------------------------- PCA data_pca -----------------------------------
+bdata <- read.csv2("data_pca.csv", sep = ";")
+
+#Normalizar datos
+data1 <- scale(bdata[,-16])
+
+#Datos normalizados
+View(data1)
+
+#Realizar pca
+#Diagnóstico para el PCA
+det(cor(data1))
+#CRITERIOS 
+# 1.- Si el determinante d ela correlación tiende a cero entonces los datos son adecuados para pca 
+# 2.- Prueba KMO si el MSA es mayor igual a 0.5 (mediocre pero útil) lo ideal es que sea mayor o igual a 0.6
+#CONCLUSION: Si es cercano a cero por lo tanto los datos son adecuados para PCA
+
+pca <- princomp(data1)
+pca$loadings
+
+#Diagnostico 
+summary(pca)
+
+#Revisar varianza y eigenvalores
+fviz_eig(pca,choice = "variance")
+#Efectivamente la componente uno  y dos aportan la mayor parte de varianza
+fviz_eig(pca,choice = "eigenvalue")
+#Solo SEIS componentes tienen un eigen valor mayor a la unidad 
+
+
+"ANÁLISIS GRAFICO"
+#Gráfico de las puntuaciones factoriales y su representación
+fviz_pca_ind(pca, 
+             col.ind = "cos2",
+             gradient.cols=c("red","yellow","green"),
+             repel = FALSE)
+
+#Gráfica de las cargas 
+fviz_pca_var(pca,
+             col.var = "contrib",
+             gradient.cols=c("red", "yellow","green"),
+             repel = FALSE)
+
+fviz_pca_biplot(pca,
+                col.var = "red",
+                col.ind = "black")
+
+#ANÁLISIS COMO LO PROPORCIONA SPSS
+x11()
+psych::cor.plot(data1)
+
+#Se debe notar que todas las variables en un PCA deben estar altamente correlacionadas para que tenga sentido realizarlo 
+det(cor(data1))
+#Este debe ser cercano a cero y como si lo es esto nos indica que es un buen pca
+
+#VARIMAX
+pca2 <- psych::principal(data1, nfactors = 6, residuals = FALSE, rotate = "varimax",
+                         scores = TRUE, oblique.scores = FALSE, method = "regression",
+                         use = "pairwise", cor = "cor", weight = NULL)
+pca2
+
+#Matriz de coeficientes para las puntuaciones de los componentes 
+pca2$weights[,1]
+pca2$weights[,2]
+pca2$weights[,3]
+pca2$weights[,4]
+pca2$weights[,5]
+pca2$weights[,6]
+#Nuevas variables obtenidas, cuya principal caracteristica es que son
+#ortogonales, es decir, linealmente independientes.
+
+#Por lo anterior, un conjunto de 15 variables altamente relacionadas
+#se redujo unicamente a dos variables cuya caracteristica es que son 
+#ortogonales
+#Las variables son las siguientes:
+pca2$scores
+
+#----------------------------------- PCA COVID-2000 -----------------------------------
+library(readxl)
+Covid <- read_excel("C:/Users/lucer/Downloads/Covid.xlsm")
+View(Covid)
+summary(Covid)
+pob_2000 <- Covid%>%
+  select(State,
+         `Census Resident Total Population - AB:Qr-1-2000`,
+         `Resident Total Population Estimate - Jul-1-2000`,
+         `Net Domestic Migration - Jul-1-2000`,
+         `Federal/Civilian Movement from Abroad - Jul-1-2000`,
+         `Net International Migration - Jul-1-2000`,
+         `Period Births - Jul-1-2000`,
+         `Period Deaths - Jul-1-2000`,
+         `Resident Under 65 Population Estimate - Jul-1-2000`,
+         `Resident 65 Plus Population Estimate - Jul-1-2000`,
+         `Residual - Jul-1-2000`)
+
+
+#Normalizar datos
+pca_2000 <- scale(pob_2000[,-1])
+
+#Datos normalizados
+View(pca_2000)
+
+#Realizar pca
+#Diagnóstico para el PCA
+det(cor(pca_2000))
+#CRITERIOS 
+# 1.- Si el determinante d ela correlación tiende a cero entonces los datos son adecuados para pca 
+# 2.- Prueba KMO si el MSA es mayor igual a 0.5 (mediocre pero útil) lo ideal es que sea mayor o igual a 0.6
+#CONCLUSION: Si es cercano a cero por lo tanto los datos son adecuados para PCA
+
+#Calcular factor de adecuación muestral de Kaiser-Meyer-Olkin
+psych::KMO(pca_2000)
+#Todas las variables poseen un masa mayor a 0.5, por lo que es pertinente el pca 
+#si fuera menos a 0.5 la eliminamos 
+
+pca20 <- princomp(pca_2000)
+pca20$loadings
+
+
+#Diagnostico 
+summary(pca20)
+
+#Revisar varianza y eigenvalores
+fviz_eig(pca20,choice = "variance")
+#Efectivamente la componente uno  y dos aportan la mayor parte de varianza
+fviz_eig(pca20,choice = "eigenvalue")
+#Solo DOS componentes tienen un eigen valor mayor a la unidad 
+
+
+"ANÁLISIS GRAFICO"
+#Gráfico de las puntuaciones factoriales y su representación
+fviz_pca_ind(pca20, 
+             col.ind = "cos2",
+             gradient.cols=c("red","yellow","green"),
+             repel = FALSE)
+
+#Gráfica de las cargas 
+fviz_pca_var(pca20,
+             col.var = "contrib",
+             gradient.cols=c("red", "yellow","green"),
+             repel = FALSE)
+
+fviz_pca_biplot(pca20,
+                col.var = "red",
+                col.ind = "black")
+
+#ANÁLISIS COMO LO PROPORCIONA SPSS
+x11()
+psych::cor.plot(pca_2000)
+
+#Se debe notar que todas las variables en un PCA deben estar altamente correlacionadas para que tenga sentido realizarlo 
+det(cor(pca_2000))
+#Este debe ser cercano a cero y como si lo es esto nos indica que es un buen pca
+
+#VARIMAX
+pca2 <- psych::principal(pca_2000, nfactors = 2, residuals = FALSE, rotate = "varimax",
+                         scores = TRUE, oblique.scores = FALSE, method = "regression",
+                         use = "pairwise", cor = "cor", weight = NULL)
+pca2
+
+#Matriz de coeficientes para las puntuaciones de los componentes 
+pca2$weights[,1]
+pca2$weights[,2]
+#Nuevas variables obtenidas, cuya principal caracteristica es que son
+#ortogonales, es decir, linealmente independientes.
+
+#Por lo anterior, un conjunto de 11 variables altamente relacionadas
+#se redujo unicamente a dos variables cuya caracteristica es que son 
+#ortogonales
+#Las variables son las siguientes:
+pca2$scores
+
+#----------------------------------- PCA COVID-2001 -----------------------------------
+pob_2001 <- Covid%>%
+  select(State,
+         `Resident Total Population Estimate - Jul-1-2001`,
+         `Net Domestic Migration - Jul-1-2001`,
+         `Federal/Civilian Movement from Abroad - Jul-1-2001`,
+         `Net International Migration - Jul-1-2001`,
+         `Period Births - Jul-1-2001`,
+         `Period Deaths - Jul-1-2001`,
+         `Resident Under 65 Population Estimate - Jul-1-2001`,
+         `Resident 65 Plus Population Estimate - Jul-1-2001`,
+         `Residual - Jul-1-2001`)
+
+#Normalizar datos
+pca_2001 <- scale(pob_2001[,-1])
+
+#Datos normalizados
+View(pca_2001)
+
+#Realizar pca
+#Diagnóstico para el PCA
+det(cor(pca_2001))
+#CRITERIOS 
+# 1.- Si el determinante d ela correlación tiende a cero entonces los datos son adecuados para pca 
+# 2.- Prueba KMO si el MSA es mayor igual a 0.5 (mediocre pero útil) lo ideal es que sea mayor o igual a 0.6
+#CONCLUSION: Si es cercano a cero por lo tanto los datos son adecuados para PCA
+
+#Calcular factor de adecuación muestral de Kaiser-Meyer-Olkin
+psych::KMO(pca_2001)
+#Todas las variables poseen un masa mayor a 0.5, por lo que es pertinente el pca 
+#si fuera menos a 0.5 la eliminamos 
+
+pca21 <- princomp(pca_2001)
+
+#Diagnostico 
+summary(pca21)
+
+#Revisar varianza y eigenvalores
+fviz_eig(pca21,choice = "variance")
+#Efectivamente la componente uno  y dos aportan la mayor parte de varianza
+fviz_eig(pca21,choice = "eigenvalue")
+#Solo DOS componentes tienen un eigen valor mayor a la unidad 
+
+
+"ANÁLISIS GRAFICO"
+#Gráfico de las puntuaciones factoriales y su representación
+fviz_pca_ind(pca21, 
+             col.ind = "cos2",
+             gradient.cols=c("red","yellow","green"),
+             repel = FALSE)
+
+#Gráfica de las cargas 
+fviz_pca_var(pca21,
+             col.var = "contrib",
+             gradient.cols=c("red", "yellow","green"),
+             repel = FALSE)
+
+fviz_pca_biplot(pca21,
+                col.var = "red",
+                col.ind = "black")
+
+#ANÁLISIS COMO LO PROPORCIONA SPSS
+x11()
+psych::cor.plot(pca_2001)
+
+#Se debe notar que todas las variables en un PCA deben estar altamente correlacionadas para que tenga sentido realizarlo 
+det(cor(pca_2001))
+#Este debe ser cercano a cero y como si lo es esto nos indica que es un buen pca
+
+#VARIMAX
+pca2 <- psych::principal(pca_2001, nfactors = 2, residuals = FALSE, rotate = "varimax",
+                         scores = TRUE, oblique.scores = FALSE, method = "regression",
+                         use = "pairwise", cor = "cor", weight = NULL)
+pca2
+
+#Matriz de coeficientes para las puntuaciones de los componentes 
+pca2$weights[,1]
+pca2$weights[,2]
+#Nuevas variables obtenidas, cuya principal caracteristica es que son
+#ortogonales, es decir, linealmente independientes.
+
+#Por lo anterior, un conjunto de 10 variables altamente relacionadas
+#se redujo unicamente a dos variables cuya caracteristica es que son 
+#ortogonales
+#Las variables son las siguientes:
+pca2$scores
+
